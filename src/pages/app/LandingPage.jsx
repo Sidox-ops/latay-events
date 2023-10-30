@@ -3,7 +3,7 @@ import { useState, useContext } from "react";
 import { supabase } from "../../utils/supabaseClient";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../utils/AuthContext";
-
+import ErrorModal from "../../components/ErrorModal";
 export default function LandingPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [showModal, setShowModal] = useState(false);
@@ -28,15 +28,16 @@ export default function LandingPage() {
             email: emailValue,
             password: passwordValue,
         });
+        console.log(user, error);
         if (error) {
             console.error("Erreur lors de l'inscription:", error.message);
             setError(error.message);
             setShowErrorModal(true);
         } else if (user) {
             console.log("Utilisateur inscrit:", user);
+            setShowModal(true);
         }
         setIsLoading(false); // Fin du chargement
-        setShowModal(true);
     };
 
     const closeModal = async () => {

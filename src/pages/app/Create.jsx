@@ -6,6 +6,7 @@ export default function Create() {
     const [error, setError] = useState("");
     const [organizations, setOrganizations] = useState([]);
     const [isOpen, setIsOpen] = useState(false);
+    const [selectedOrganization, setSelectedOrganization] = useState("");
 
     const toggleDropdown = () => {
         setIsOpen(!isOpen);
@@ -43,6 +44,7 @@ export default function Create() {
             .eq("user_mail", userEmail)
             .single();
         console.log(admin);
+        setOrganizations(admin.organization);
     };
 
     useEffect(() => {
@@ -55,7 +57,7 @@ export default function Create() {
         getOrganizations();
     }, [userEmail]);
     return (
-        <div className="animate-in p-8 rounded-lg shadow-md w-full max-w-7xl mt-10">
+        <div className="animate-in p-8 rounded-lg shadow-md w-full max-w-7xl m-auto mt-10">
             <div className="text-xl mb-6 font-bold text-center">
                 Créer un événement pour
                 <div className="relative inline-block text-left ml-6">
@@ -68,7 +70,8 @@ export default function Create() {
                             aria-expanded="true"
                             onClick={toggleDropdown}
                         >
-                            Options
+                            {selectedOrganization || "Options"}
+
                             <svg
                                 className="-mr-1 ml-2 h-5 w-5"
                                 xmlns="http://www.w3.org/2000/svg"
@@ -93,27 +96,23 @@ export default function Create() {
                                 aria-orientation="vertical"
                                 aria-labelledby="options-menu"
                             >
-                                <a
-                                    href="#"
-                                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                                    role="menuitem"
-                                >
-                                    Option 1
-                                </a>
-                                <a
-                                    href="#"
-                                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                                    role="menuitem"
-                                >
-                                    Option 2
-                                </a>
-                                <a
-                                    href="#"
-                                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                                    role="menuitem"
-                                >
-                                    Option 3
-                                </a>
+                                {organizations.map((organization) => (
+                                    <a
+                                        key={organizations.indexOf(
+                                            organization
+                                        )}
+                                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                        role="menuitem"
+                                        onClick={() => {
+                                            setSelectedOrganization(
+                                                organization
+                                            );
+                                            toggleDropdown();
+                                        }}
+                                    >
+                                        {organization}
+                                    </a>
+                                ))}
                             </div>
                         </div>
                     )}
