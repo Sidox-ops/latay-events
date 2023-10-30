@@ -10,16 +10,17 @@ export default function AdminRoute({ children }) {
 
     useEffect(() => {
         const checkUserStatus = async () => {
-            if (isInitialized && !user) {
-                navigate("/login");
+            if (isInitialized || !user) {
+                navigate("/");
                 return;
             }
 
-            const { data, error } = await supabase
+            const { data: admin, error } = await supabase
                 .from("admin")
-                .select("*")
+                .select("user_mail")
                 .eq("user_mail", user.email);
 
+            console.log("ADMIN", admin);
             if (error) {
                 console.error(
                     "Erreur lors de la vérification du statut d'administrateur:",
@@ -28,7 +29,7 @@ export default function AdminRoute({ children }) {
                 return;
             }
 
-            if (data.length > 0) {
+            if (admin.length > 0) {
                 setIsAdmin(true);
             } else {
                 navigate("/app");
@@ -36,7 +37,7 @@ export default function AdminRoute({ children }) {
         };
 
         checkUserStatus();
-    }, [user, navigate]);
+    }, [user, navigate, isInitialized]);
 
     if (!isAdmin) return null;
 
