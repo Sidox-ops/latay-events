@@ -1,0 +1,27 @@
+.image-scroller-container {
+    overflow: hidden;
+    /* width: 100%;
+    height: 300px; */
+}
+
+.image-scroller {
+    display: flex;
+    animation: scrollAnimation 20s linear infinite;
+}
+
+.scroller-image {
+    flex: 0 0 auto;
+    height: 200px;
+    width: auto; /* Ajouté pour s'assurer que la largeur est automatiquement définie */
+    object-fit: cover; /* S'assure que l'image couvre la hauteur sans déformation */
+    margin-right: 10px;
+}
+
+@keyframes scrollAnimation {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}

@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./App.css";
 import { createClient } from "@supabase/supabase-js";
-import ProtectedRoutes from "./components/ProtectedRoutes";
 import Login from "./pages/Login";
-import AuthRedirection from "./components/AuthRedirection";
 import Core from "./components/Core";
 import Create from "./pages/app/Create";
+import LandingPage from "./pages/app/LandingPage";
+import { AuthProvider, useAuth } from "./utils/AuthContext";
+import PrivateRoute from "./utils/PrivateRoutes";
+import AdminRoutes from "./utils/AdminRoutes";
 
 export const supabase = createClient(
     import.meta.env.VITE_PUBLIC_SUPABASE_URL,
@@ -14,14 +15,20 @@ export const supabase = createClient(
 );
 
 function App() {
+    return (
+        <AuthProvider>
+            <AppContent />
+        </AuthProvider>
+    );
+}
+
+function AppContent() {
+    const { user } = useAuth();
+
     const router = createBrowserRouter([
         {
             path: "/",
-            element: (
-                <AuthRedirection>
-                    <div>Hello world!</div>
-                </AuthRedirection>
-            ),
+            element: <LandingPage />,
         },
         {
             path: "/login",
@@ -29,21 +36,21 @@ function App() {
         },
         {
             path: "/create",
-            element: <Create />,
+            element: (
+                <AdminRoutes>
+                    <Create />
+                </AdminRoutes>
+            ),
         },
         {
-            path: "/dashboard",
+            path: "/app",
             element: (
-                <ProtectedRoutes>
+                <PrivateRoute>
                     <Core />
-                </ProtectedRoutes>
+                </PrivateRoute>
             ),
         },
     ]);
-
-    useEffect(() => {
-        console.log(supabase);
-    }, []);
 
     return <RouterProvider router={router} />;
 }
