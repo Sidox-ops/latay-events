@@ -2,7 +2,8 @@ import { supabase } from "../../App";
 import { useEffect, useState } from "react";
 export default function Create() {
     const [userEmail, setUserEmail] = useState("");
-
+    const [error, setError] = useState("");
+    const [organizations, setOrganizations] = useState([]);
     const borderColor = "hsl(157.11, 56.72%, 26.27%)";
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -30,12 +31,16 @@ export default function Create() {
     };
 
     useEffect(() => {
-        const getUserEmail = async () => {
+        const getUser = async () => {
             const { data, error } = await supabase.auth.getSession();
             if (error) console.log(error);
-            else setUserEmail(data.session.user.email);
+            else {
+                setUserEmail(data.session.user.email);
+                setOrganizations(data.session.user.organization);
+            }
+            console.log(organizations);
         };
-        getUserEmail();
+        getUser();
     }, [userEmail]);
     return (
         <div className="animate-in p-8 rounded-lg shadow-md w-full max-w-7xl mt-10">

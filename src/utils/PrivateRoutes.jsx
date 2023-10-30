@@ -9,15 +9,10 @@ export default function PrivateRoute({ children }) {
     const [isAdmin, setIsAdmin] = useState(false);
 
     const checkUserStatus = async () => {
-        if (isInitialized || !user) {
-            navigate("/");
-            return;
-        }
-
         const { data: admin, error } = await supabase
             .from("admin")
             .select("user_mail")
-            .eq("user_mail", user.email);
+            .eq("user_mail", user?.email);
 
         console.log("ADMIN", admin);
         if (error) {
@@ -39,11 +34,8 @@ export default function PrivateRoute({ children }) {
         if (isInitialized && !user) {
             navigate("/login");
         } else {
-            if (!user) {
-                navigate("/login");
-            }
+            checkUserStatus();
         }
-        checkUserStatus();
     }, [user, navigate]);
 
     if (!user) return null;
