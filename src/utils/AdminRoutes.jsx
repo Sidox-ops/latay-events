@@ -8,6 +8,7 @@ export default function AdminRoute({ children }) {
     const { user, isInitialized } = useAuth();
     const navigate = useNavigate();
     const [isAdmin, setIsAdmin] = useState(false);
+    const [isAdminChecked, setIsAdminChecked] = useState(false); // 1. Ajout de l'état isAdminChecked
 
     useEffect(() => {
         const checkUserStatus = async () => {
@@ -20,8 +21,7 @@ export default function AdminRoute({ children }) {
                 .from("admin")
                 .select("user_mail")
                 .eq("user_mail", user?.email);
-
-            console.log("ADMIN", admin);
+            setIsAdminChecked(true); // 2. On met à jour l'état isAdminChecked
             if (error) {
                 console.error(
                     "Erreur lors de la vérification du statut d'administrateur:",
@@ -33,7 +33,9 @@ export default function AdminRoute({ children }) {
             if (admin.length > 0) {
                 setIsAdmin(true);
             } else {
-                navigate("/app");
+                if (isAdminChecked) {
+                    navigate("/app");
+                }
             }
         };
 
