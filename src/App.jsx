@@ -39,7 +39,11 @@ function AppContent() {
         },
         {
             path: "/login",
-            element: <Login />,
+            element: (
+                <HomeRoutes>
+                    <Login />
+                </HomeRoutes>
+            ),
         },
         {
             path: "/create",
