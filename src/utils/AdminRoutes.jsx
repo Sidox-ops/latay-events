@@ -53,7 +53,15 @@ export default function AdminRoute({ children }) {
             <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
                 <div className="max-w-4xl flex justify-between items-center p-3 text-sm text-foreground">
                     <div className="flex items-center gap-4">
-                        Hey, {user.email}!
+                        Hey, {user.email} !
+                        <button
+                            onClick={() => {
+                                navigate("/app");
+                            }}
+                            className="py-2 px-4 rounded-md no-underline bg-btn-background hover:bg-btn-background-hover"
+                        >
+                            Home
+                        </button>
                         <LogoutButton />
                         {isAdmin && (
                             <button
