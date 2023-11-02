@@ -12,6 +12,8 @@ import {
     where,
     Timestamp,
 } from "firebase/firestore";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+
 export default function Create() {
     const borderColor = "hsl(157.11, 56.72%, 26.27%)";
     const navigate = useNavigate();
@@ -84,6 +86,10 @@ export default function Create() {
         setLoading(true);
         e.preventDefault();
 
+        const file = e.target.image.files[0]; // Récupérer le fichier image du champ de formulaire
+        const storage = getStorage();
+        const storageRef = ref(storage, "images/" + file.name); // Créer une référence au fichier dans Firebase Storage
+
         if (selectedOrganization == null || selectedOrganization.length === 0) {
             setError({
                 message:
@@ -98,6 +104,9 @@ export default function Create() {
         const eventDate = new Date(e.target.date.value);
         const timestamp = Timestamp.fromDate(eventDate);
 
+        const snapshot = await uploadBytes(storageRef, file);
+        const imageUrl = await getDownloadURL(snapshot.ref); // Récupérer l'URL de l'image téléchargée
+
         const informations = {
             name: e.target.name.value,
             date: timestamp, // Utiliser l'objet Timestamp
@@ -107,7 +116,7 @@ export default function Create() {
             created_by: userEmail, // Assurez-vous que userEmail est défini
             organization: selectedOrganization, // Assurez-vous que selectedOrganization est défini
             guests: [], // Commencer avec un tableau vide
-            places: 100, // Si c'est une valeur fixe, sinon récupérez-la du formulaire
+            imageUrl, // Utiliser l'URL de l'image téléchargée
         };
 
         try {
@@ -228,6 +237,23 @@ export default function Create() {
                 </div>
             </div>
             <form onSubmit={handleSubmit}>
+                <div className="mb-4">
+                    <label
+                        className="block text-sm font-medium mb-2"
+                        htmlFor="image"
+                    >
+                        Image
+                    </label>
+                    <input
+                        className="border rounded w-full py-2 px-3"
+                        style={{ borderColor }}
+                        type="file"
+                        id="image"
+                        name="image"
+                        accept="image/*" // Accepter uniquement les fichiers image
+                        required
+                    />
+                </div>
                 <div className="mb-4">
                     <label
                         className="block text-sm font-medium mb-2"

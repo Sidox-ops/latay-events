@@ -39,21 +39,30 @@ export default function Dashboard() {
                         key={event.id}
                         className="bg-white rounded-lg shadow-md p-6"
                     >
-                        <h2 className="text-xl font-bold mb-2">{event.name}</h2>
-                        <p className="text-gray-700">{event.description}</p>
-                        <p className="text-gray-600">{event.address}</p>
-                        <p className="text-gray-600">
-                            {new Date(
-                                event.date.seconds * 1000
-                            ).toLocaleDateString()}
-                        </p>
-                        <p className="text-gray-600">
-                            Organisé par : {event.organization}
-                        </p>
-                        <p className="text-gray-600">Places : {event.places}</p>
-                        <p className="text-gray-600">
-                            Invités : {event.guests.length}/{event.maxGuests}
-                        </p>
+                        <img
+                            src={event.imageUrl} // Assurez-vous que 'imageUrl' est le champ correct de votre base de données
+                            alt={event.name}
+                            className="w-full h-48 object-cover rounded-t-lg"
+                        />
+                        <div className="p-4">
+                            <h2 className="text-xl font-bold mb-2">
+                                {event.name}
+                            </h2>
+                            <p className="text-gray-700">{event.description}</p>
+                            <p className="text-gray-600">{event.address}</p>
+                            <p className="text-gray-600">
+                                {new Date(
+                                    event.date.seconds * 1000
+                                ).toLocaleDateString()}
+                            </p>
+                            <p className="text-gray-600">
+                                Organisé par : {event.organization}
+                            </p>
+                            <p className="text-gray-600">
+                                Invités : {event.guests.length}/
+                                {event.maxGuests}
+                            </p>
+                        </div>
                     </div>
                 ))}
             </div>

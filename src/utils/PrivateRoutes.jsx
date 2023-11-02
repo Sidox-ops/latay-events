@@ -16,25 +16,24 @@ export default function PrivateRoute({ children }) {
     const [isAdmin, setIsAdmin] = useState(false);
     const db = getFirestore();
 
-    const checkUserStatus = async () => {
-        if (!user) return;
-
-        const q = query(
-            collection(db, "admins"),
-            where("email", "==", user.email)
-        );
-        try {
-            const querySnapshot = await getDocs(q);
-            setIsAdmin(!querySnapshot.empty);
-        } catch (error) {
-            console.error(
-                "Erreur lors de la vérification du statut d'administrateur:",
-                error
-            );
-        }
-    };
-
     useEffect(() => {
+        const checkUserStatus = async () => {
+            if (!user) return;
+
+            const q = query(
+                collection(db, "admins"),
+                where("email", "==", user.email)
+            );
+            try {
+                const querySnapshot = await getDocs(q);
+                setIsAdmin(!querySnapshot.empty);
+            } catch (error) {
+                console.error(
+                    "Erreur lors de la vérification du statut d'administrateur:",
+                    error
+                );
+            }
+        };
         if (!user) {
             navigate("/login");
         } else {

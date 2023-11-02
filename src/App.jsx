@@ -11,6 +11,7 @@ import { getAnalytics } from "firebase/analytics";
 import { firebaseConfig } from "./firebase";
 import { getAuth } from "firebase/auth";
 import Dashboard from "./pages/app/Dashboard";
+import HomeRoutes from "./utils/HomeRoutes";
 
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
@@ -30,7 +31,11 @@ function AppContent() {
     const router = createBrowserRouter([
         {
             path: "/",
-            element: <LandingPage />,
+            element: (
+                <HomeRoutes>
+                    <LandingPage />
+                </HomeRoutes>
+            ),
         },
         {
             path: "/login",
