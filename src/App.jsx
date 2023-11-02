@@ -1,8 +1,6 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./App.css";
-import { createClient } from "@supabase/supabase-js";
 import Login from "./pages/Login";
-import Core from "./components/Core";
 import Create from "./pages/app/Create";
 import LandingPage from "./pages/app/LandingPage";
 import { AuthProvider, useAuth } from "./utils/AuthContext";
@@ -12,6 +10,7 @@ import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { firebaseConfig } from "./firebase";
 import { getAuth } from "firebase/auth";
+import Dashboard from "./pages/app/Dashboard";
 
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
@@ -49,7 +48,7 @@ function AppContent() {
             path: "/app",
             element: (
                 <PrivateRoute>
-                    <Core />
+                    <Dashboard />
                 </PrivateRoute>
             ),
         },
