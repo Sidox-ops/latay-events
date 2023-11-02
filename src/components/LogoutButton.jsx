@@ -1,9 +1,11 @@
-import { supabase } from "../utils/supabaseClient";
 import { useNavigate } from "react-router-dom";
+import { getAuth } from "firebase/auth";
+
 export default function LogoutButton() {
     const navigate = useNavigate();
+    const auth = getAuth();
     const signOut = async () => {
-        const { error } = await supabase.auth.signOut();
+        const { error } = await auth.signOut();
         if (error) console.log(error);
         navigate("/");
     };

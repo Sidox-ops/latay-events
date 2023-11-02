@@ -2,36 +2,40 @@ import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import LogoutButton from "../components/LogoutButton";
-import { supabase } from "./supabaseClient";
+import {
+    getFirestore,
+    collection,
+    query,
+    where,
+    getDocs,
+} from "firebase/firestore";
+
 export default function PrivateRoute({ children }) {
-    const { user, isInitialized } = useAuth();
+    const { user } = useAuth();
     const navigate = useNavigate();
     const [isAdmin, setIsAdmin] = useState(false);
+    const db = getFirestore();
 
     const checkUserStatus = async () => {
-        const { data: admin, error } = await supabase
-            .from("admin")
-            .select("user_mail")
-            .eq("user_mail", user?.email);
+        if (!user) return;
 
-        console.log("ADMIN", admin);
-        if (error) {
+        const q = query(
+            collection(db, "admins"),
+            where("email", "==", user.email)
+        );
+        try {
+            const querySnapshot = await getDocs(q);
+            setIsAdmin(!querySnapshot.empty);
+        } catch (error) {
             console.error(
                 "Erreur lors de la vérification du statut d'administrateur:",
-                error.message
+                error
             );
-            return;
-        }
-
-        if (admin.length > 0) {
-            setIsAdmin(true);
-        } else {
-            console.log("NOT ADMIN");
         }
     };
 
     useEffect(() => {
-        if (isInitialized && !user) {
+        if (!user) {
             navigate("/login");
         } else {
             checkUserStatus();

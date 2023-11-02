@@ -1,63 +1,172 @@
-import { supabase } from "../../App";
+import LoadingModal from "../../components/LoadingModal";
+import ErrorModal from "../../components/ErrorModal";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { auth } from "../../App";
+import {
+    getFirestore,
+    collection,
+    addDoc,
+    getDocs,
+    query,
+    where,
+    Timestamp,
+} from "firebase/firestore";
 export default function Create() {
     const borderColor = "hsl(157.11, 56.72%, 26.27%)";
+    const navigate = useNavigate();
     const [userEmail, setUserEmail] = useState("");
-    const [error, setError] = useState("");
+    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [showError, setShowError] = useState(false);
     const [organizations, setOrganizations] = useState([]);
     const [isOpen, setIsOpen] = useState(false);
     const [selectedOrganization, setSelectedOrganization] = useState("");
+    const [success, setSuccess] = useState(false);
+
+    const Modal = () => (
+        <div className="fixed z-50 inset-0 overflow-y-auto">
+            <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div className="fixed inset-0 transition-opacity">
+                    <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+                </div>
+                <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                    <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div className="sm:flex sm:items-start">
+                            <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                                <h3 className="text-lg leading-6 font-medium text-gray-900">
+                                    Félicitations !
+                                </h3>
+                                <div className="mt-2">
+                                    <p className="text-sm leading-5 text-gray-500">
+                                        Vous avez bien créé votre événement.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <span className="flex w-full rounded-md shadow-sm sm:ml-3 sm:w-auto">
+                            <button
+                                onClick={closeModal("success")}
+                                className="inline-flex justify-center w-full rounded-md border border-transparent px-4 py-2 bg-green-600 text-base leading-6 font-medium text-white shadow-sm hover:bg-green-500 focus:outline-none focus:border-green-700 focus:shadow-outline-green transition ease-in-out duration-150 sm:text-sm sm:leading-5"
+                            >
+                                Voir la liste d'événements
+                            </button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
+    const db = getFirestore();
+
+    const closeModal = (modal) => () => {
+        switch (modal) {
+            case "success":
+                setSuccess(false);
+                navigate("/app");
+                break;
+            case "error":
+                setShowError(false);
+                break;
+            default:
+                break;
+        }
+    };
 
     const toggleDropdown = () => {
         setIsOpen(!isOpen);
     };
 
     const handleSubmit = async (e) => {
+        setLoading(true);
         e.preventDefault();
+
+        if (selectedOrganization == null || selectedOrganization.length === 0) {
+            setError({
+                message:
+                    "Veuillez entrer l'organisation pour laquelle vous créez l'événement.",
+            });
+            setShowError(true);
+            setLoading(false);
+            return;
+        }
+
+        // Créer un objet Timestamp pour Firestore à partir de la date
+        const eventDate = new Date(e.target.date.value);
+        const timestamp = Timestamp.fromDate(eventDate);
 
         const informations = {
             name: e.target.name.value,
-            date: e.target.date.value,
-            maxGuests: e.target.maxGuests.value,
+            date: timestamp, // Utiliser l'objet Timestamp
+            maxGuests: parseInt(e.target.maxGuests.value), // Convertir en nombre
             description: e.target.description.value,
             address: e.target.address.value,
+            created_by: userEmail, // Assurez-vous que userEmail est défini
+            organization: selectedOrganization, // Assurez-vous que selectedOrganization est défini
+            guests: [], // Commencer avec un tableau vide
+            places: 100, // Si c'est une valeur fixe, sinon récupérez-la du formulaire
         };
 
-        const { data, error } = await supabase.from("events").insert([
-            {
-                created_by: userEmail,
-                informations: informations,
-            },
-        ]);
-
-        if (error) {
+        try {
+            const docRef = await addDoc(collection(db, "events"), informations);
+            console.log("Document written with ID: ", docRef.id);
+            setSuccess(true);
+        } catch (error) {
             console.error("Erreur lors de la création de l'événement:", error);
-        } else {
-            console.log("Événement créé avec succès:", data);
+            setError(error);
+            setShowError(true); // Afficher le modal d'erreur
+        } finally {
+            setLoading(false); // Cesser le chargement indépendamment du résultat
         }
     };
 
-    const getOrganizations = async () => {
-        const { data: admin, error } = await supabase
-            .from("admin")
-            .select("organization")
-            .eq("user_mail", userEmail)
-            .single();
-        console.log(admin);
-        setOrganizations(admin.organization);
-    };
-
     useEffect(() => {
-        const getUser = async () => {
-            const { data, error } = await supabase.auth.getSession();
-            if (error) console.log(error);
-            else setUserEmail(data.session.user.email);
+        const getOrganizations = async () => {
+            const q = query(
+                collection(db, "admins"),
+                where("email", "==", userEmail)
+            );
+
+            const _querySnapshot = await getDocs(q);
+
+            if (!userEmail) {
+                console.error("L'email de l'utilisateur n'est pas défini.");
+                return;
+            }
+
+            try {
+                _querySnapshot.forEach((doc) => {
+                    // doc.data() is never undefined for query doc snapshots
+                    console.log("ICI => ", doc.data());
+                    setOrganizations(doc.data().organizations);
+                });
+            } catch (error) {
+                console.error(
+                    "Erreur lors de la récupération des organisations:",
+                    error
+                );
+            }
         };
-        getUser();
+
+        if (auth.currentUser) {
+            setUserEmail(auth.currentUser.email);
+            getOrganizations();
+        }
         getOrganizations();
     }, [userEmail]);
     return (
         <div className="animate-in p-8 rounded-lg shadow-md w-full max-w-7xl m-auto mt-10">
+            {loading && <LoadingModal />}
+            {showError && (
+                <ErrorModal
+                    onClose={closeModal("error")}
+                    errorMessage={error.message}
+                />
+            )}
+            {success && <Modal />}
             <div className="text-xl mb-6 font-bold text-center">
                 Créer un événement pour
                 <div className="relative inline-block text-left ml-6">

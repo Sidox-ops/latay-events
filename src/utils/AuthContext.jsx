@@ -1,52 +1,33 @@
-import { createContext, useState, useEffect, useContext } from "react";
-import { supabase } from "./supabaseClient";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
-const AuthContext = createContext({
-    user: null,
-    setUser: () => {},
-    session: null,
-    signOut: () => {},
-    isInitialized: false,
-});
+const AuthContext = createContext();
+
+export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [session, setSession] = useState(null);
-    const [isInitialized, setIsInitialized] = useState(false);
+    const [currentUser, setCurrentUser] = useState(null);
+    const [loading, setLoading] = useState(true); // Ajout d'un état de chargement
 
     useEffect(() => {
-        const currentSession = supabase.auth.getSession();
-        setSession(currentSession);
-        setUser(currentSession?.user);
+        const auth = getAuth();
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            setCurrentUser(user);
+            setLoading(false); // Mise à jour de l'état de chargement
+        });
 
-        const { data: authListener } = supabase.auth.onAuthStateChange(
-            (event, session) => {
-                setSession(session);
-                setUser(session?.user);
-            }
-        );
-
-        setIsInitialized(true);
-
-        return () => {
-            authListener.subscription.unsubscribe();
-        };
+        return unsubscribe; // Se désabonner lors du démontage
     }, []);
 
+    const value = {
+        user: currentUser,
+        setUser: setCurrentUser,
+        loading, // Fournir l'état de chargement
+    };
+
     return (
-        <AuthContext.Provider
-            value={{
-                user,
-                session,
-                signOut: () => supabase.auth.signOut(),
-                setUser,
-            }}
-        >
-            {children}
+        <AuthContext.Provider value={value}>
+            {!loading && children}
         </AuthContext.Provider>
     );
-};
-
-export const useAuth = () => {
-    return useContext(AuthContext);
 };

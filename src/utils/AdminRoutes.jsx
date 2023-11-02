@@ -1,46 +1,50 @@
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import LogoutButton from "../components/LogoutButton";
-import { supabase } from "./supabaseClient";
 import { useAuth } from "./AuthContext";
+import {
+    getFirestore,
+    collection,
+    query,
+    where,
+    getDocs,
+} from "firebase/firestore";
 
 export default function AdminRoute({ children }) {
-    const { user, isInitialized } = useAuth();
+    const { user } = useAuth();
     const navigate = useNavigate();
     const [isAdmin, setIsAdmin] = useState(false);
-    const [isAdminChecked, setIsAdminChecked] = useState(false); // 1. Ajout de l'état isAdminChecked
+    const db = getFirestore();
 
     useEffect(() => {
         const checkUserStatus = async () => {
-            if (isInitialized && !user) {
+            if (!user) {
                 navigate("/");
                 return;
             }
 
-            const { data: admin, error } = await supabase
-                .from("admin")
-                .select("user_mail")
-                .eq("user_mail", user?.email);
-            setIsAdminChecked(true); // 2. On met à jour l'état isAdminChecked
-            if (error) {
-                console.error(
-                    "Erreur lors de la vérification du statut d'administrateur:",
-                    error.message
-                );
-                return;
-            }
-
-            if (admin.length > 0) {
-                setIsAdmin(true);
-            } else {
-                if (isAdminChecked) {
+            const q = query(
+                collection(db, "admins"),
+                where("email", "==", user.email)
+            );
+            console.log(q);
+            try {
+                const querySnapshot = await getDocs(q);
+                if (!querySnapshot.empty) {
+                    setIsAdmin(true);
+                } else {
                     navigate("/app");
                 }
+            } catch (error) {
+                console.error(
+                    "Erreur lors de la vérification du statut d'administrateur:",
+                    error
+                );
             }
         };
 
         checkUserStatus();
-    }, [user, navigate, isInitialized]);
+    }, [user, navigate]);
 
     if (!isAdmin) return null;
 

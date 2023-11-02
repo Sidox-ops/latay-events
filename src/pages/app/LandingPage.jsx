@@ -1,9 +1,11 @@
 import Card from "../../components/Card";
-import { useState, useContext } from "react";
-import { supabase } from "../../utils/supabaseClient";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../utils/AuthContext";
 import ErrorModal from "../../components/ErrorModal";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../App";
+import LoadingModal from "../../components/LoadingModal";
 export default function LandingPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [showModal, setShowModal] = useState(false);
@@ -24,18 +26,20 @@ export default function LandingPage() {
         const passwordValue = e.target.elements.password.value;
         setEmail(emailValue);
         setPassword(passwordValue);
-        const { user, error } = await supabase.auth.signUp({
-            email: emailValue,
-            password: passwordValue,
-        });
-        console.log(user, error);
-        if (error) {
+
+        try {
+            const userCredential = await createUserWithEmailAndPassword(
+                auth,
+                emailValue,
+                passwordValue
+            );
+            const user = userCredential.user;
+            console.log("Utilisateur inscrit:", user);
+            setShowModal(true);
+        } catch (error) {
             console.error("Erreur lors de l'inscription:", error.message);
             setError(error.message);
             setShowErrorModal(true);
-        } else if (user) {
-            console.log("Utilisateur inscrit:", user);
-            setShowModal(true);
         }
         setIsLoading(false); // Fin du chargement
     };
@@ -89,18 +93,7 @@ export default function LandingPage() {
         </div>
     );
 
-    const LoadingModal = () => (
-        <div className="fixed z-20 inset-0 overflow-y-auto">
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="bg-white p-6 rounded-lg shadow-xl">
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                        Chargement...
-                    </h3>
-                    <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-blue-500"></div>
-                </div>
-            </div>
-        </div>
-    );
+    
 
     const description = (
         <div className="bg-gradient-to-r from-green-700 via-green-50 to-green-700 p-10 rounded-lg shadow-md text-gra-950">
@@ -119,7 +112,7 @@ export default function LandingPage() {
 
     const signUpForm = (
         <div className="flex flex-col items-center justify-center">
-            <div className="m-4 bg-white rounded-lg p-6 ">
+            <div className="m-4 bg-white rounded-lg p-6 w-full">
                 <h1 className="text-2xl font-bold mb-4 text-gray-900">
                     Rejoins nous
                 </h1>
@@ -145,7 +138,7 @@ export default function LandingPage() {
                             <input
                                 type="email"
                                 id="email"
-                                className="block w-full pl-10 border rounded-md h-12 text-lg"
+                                className="block w-full pl-5 border rounded-md h-12 text-lg"
                                 placeholder="Email"
                             />
                         </div>
@@ -161,7 +154,7 @@ export default function LandingPage() {
                         <input
                             type={showPassword ? "text" : "password"} // Utilisez l'état ici
                             id="password"
-                            className="block w-full pl-10 border rounded-md h-12 text-lg"
+                            className="block w-full pl-5 border rounded-md h-12 text-lg"
                             placeholder="••••••••"
                         />
 

@@ -8,11 +8,14 @@ import LandingPage from "./pages/app/LandingPage";
 import { AuthProvider, useAuth } from "./utils/AuthContext";
 import PrivateRoute from "./utils/PrivateRoutes";
 import AdminRoutes from "./utils/AdminRoutes";
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+import { firebaseConfig } from "./firebase";
+import { getAuth } from "firebase/auth";
 
-export const supabase = createClient(
-    import.meta.env.VITE_PUBLIC_SUPABASE_URL,
-    import.meta.env.VITE_PUBLIC_SUPABASE_ANON_KEY
-);
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+export const auth = getAuth(app);
 
 function App() {
     return (
