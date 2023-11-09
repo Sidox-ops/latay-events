@@ -12,6 +12,7 @@ import { firebaseConfig } from "./firebase";
 import { getAuth } from "firebase/auth";
 import Dashboard from "./pages/app/Dashboard";
 import HomeRoutes from "./utils/HomeRoutes";
+import Event from "./pages/app/Event";
 
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
@@ -56,8 +57,16 @@ function AppContent() {
         {
             path: "/app",
             element: (
-                <PrivateRoute>
+                <PrivateRoute banner>
                     <Dashboard />
+                </PrivateRoute>
+            ),
+        },
+        {
+            path: "/event/:id",
+            element: (
+                <PrivateRoute banner={false}>
+                    <Event />
                 </PrivateRoute>
             ),
         },

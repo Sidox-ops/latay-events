@@ -10,7 +10,8 @@ import {
     getDocs,
 } from "firebase/firestore";
 
-export default function PrivateRoute({ children }) {
+export default function PrivateRoute({ children, ...props }) {
+    const { banner } = props;
     const { user } = useAuth();
     const navigate = useNavigate();
     const [isAdmin, setIsAdmin] = useState(false);
@@ -45,32 +46,35 @@ export default function PrivateRoute({ children }) {
 
     return (
         <>
-            <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
-                <div className="max-w-4xl flex justify-between items-center p-3 text-sm text-foreground">
-                    <div className="flex items-center gap-4">
-                        Hey, {user.email} !
-                        <button
-                            onClick={() => {
-                                navigate("/app");
-                            }}
-                            className="py-2 px-4 rounded-md no-underline bg-btn-background hover:bg-btn-background-hover"
-                        >
-                            Home
-                        </button>
-                        <LogoutButton />
-                        {isAdmin && (
+            {banner && (
+                <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
+                    <div className="max-w-4xl flex justify-between items-center p-3 text-sm text-foreground">
+                        <div className="flex items-center gap-4">
+                            Hey, {user.email} !
                             <button
                                 onClick={() => {
-                                    navigate("/create");
+                                    navigate("/app");
                                 }}
                                 className="py-2 px-4 rounded-md no-underline bg-btn-background hover:bg-btn-background-hover"
                             >
-                                Créer un événement
+                                Home
                             </button>
-                        )}
+                            <LogoutButton />
+                            {isAdmin && (
+                                <button
+                                    onClick={() => {
+                                        navigate("/create");
+                                    }}
+                                    className="py-2 px-4 rounded-md no-underline bg-btn-background hover:bg-btn-background-hover"
+                                >
+                                    Créer un événement
+                                </button>
+                            )}
+                        </div>
                     </div>
-                </div>
-            </nav>
+                </nav>
+            )}
+
             {children}
         </>
     );
